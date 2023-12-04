@@ -23,6 +23,7 @@ import static cpw.mods.modlauncher.api.LamdbaExceptionUtils.uncheck;
 /**
  * Support loading mods located in JAR files in the mods folder
  */
+
 public class ModsFolderLocator extends AbstractJarFileModLocator
 {
     private static final String SUFFIX = ".jar";
@@ -43,15 +44,36 @@ public class ModsFolderLocator extends AbstractJarFileModLocator
         this.customName = name;
     }
 
+
+    List<Path> additionalFolders = Arrays.asList(
+            this.modFolder.resolve("Fabric"),
+            this.modFolder.resolve("Other")
+    );
+
     @Override
     public Stream<Path> scanCandidates() {
         LOGGER.debug(LogMarkers.SCAN,"Scanning mods dir {} for mods", this.modFolder);
         var excluded = ModDirTransformerDiscoverer.allExcluded();
 
-        return uncheck(()-> Files.list(this.modFolder))
-                .filter(p-> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX))
-                .sorted(Comparator.comparing(path-> StringUtils.toLowerCase(path.getFileName().toString())));
+        Stream<Path> modsFolderStream = uncheck(() -> Files.list(this.modFolder))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+
+        Stream<Path> additionalFoldersStream = additionalFolders.stream()
+                .flatMap(folder -> uncheck(() -> Files.list(folder)))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+
+        return Stream.concat(modsFolderStream, additionalFoldersStream)
+                .sorted(Comparator.comparing(path -> StringUtils.toLowerCase(path.getFileName().toString())));
     }
+//    @Override
+//    public Stream<Path> scanCandidates() {
+//        LOGGER.debug(LogMarkers.SCAN,"Scanning mods dir {} for mods", this.modFolder);
+//        var excluded = ModDirTransformerDiscoverer.allExcluded();
+//
+//        return uncheck(()-> Files.list(this.modFolder))
+//                .filter(p-> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX))
+//                .sorted(Comparator.comparing(path-> StringUtils.toLowerCase(path.getFileName().toString())));
+//    }
 
     @Override
     public String name() {
