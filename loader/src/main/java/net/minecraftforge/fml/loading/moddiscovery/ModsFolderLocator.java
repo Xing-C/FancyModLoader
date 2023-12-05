@@ -12,6 +12,8 @@ import net.minecraftforge.fml.loading.ModDirTransformerDiscoverer;
 import net.minecraftforge.fml.loading.StringUtils;
 import org.slf4j.Logger;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -45,12 +47,57 @@ public class ModsFolderLocator extends AbstractJarFileModLocator
 
     @Override
     public Stream<Path> scanCandidates() {
-        LOGGER.debug(LogMarkers.SCAN,"Scanning mods dir {} for mods", this.modFolder);
+        LOGGER.debug(LogMarkers.SCAN, "Scanning mods dir {} for mods", this.modFolder);
         var excluded = ModDirTransformerDiscoverer.allExcluded();
+        String n1 = "XKLYOL";
+        String n2 = "Fabric";
+        String n3 = "Important";
+        String n4 = "Test";
 
-        return uncheck(()-> Files.list(this.modFolder))
-                .filter(p-> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX))
-                .sorted(Comparator.comparing(path-> StringUtils.toLowerCase(path.getFileName().toString())));
+        final Path modsDir1 = this.modFolder.resolve(n1);
+        final Path modsDir2 = this.modFolder.resolve(n2);
+        final Path modsDir3 = this.modFolder.resolve(n3);
+        final Path modsDir4 = this.modFolder.resolve(n4);
+        File file1 = new File(java.lang.String.valueOf(modsDir1));
+        File file2 = new File(java.lang.String.valueOf(modsDir2));
+        File file3 = new File(java.lang.String.valueOf(modsDir3));
+        File file4 = new File(java.lang.String.valueOf(modsDir4));
+
+        if (!file1.exists()){
+            file1.mkdirs();
+        }
+        if (!file2.exists()){
+            file2.mkdirs();
+        }
+        if (!file3.exists()){
+            file3.mkdirs();
+        }
+        if (!file4.exists()){
+            file4.mkdirs();
+        }
+        // 原版 mods 文件夹
+        Stream<Path> modsFolderStream = uncheck(() -> Files.list(this.modFolder))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+        // 额外
+        Path mods1 = this.modFolder.resolve(n1);
+        Stream<Path> modFolder1 = uncheck(() -> Files.list(mods1))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+
+        Path mods2 = this.modFolder.resolve(n2);
+        Stream<Path> modFolder2 = uncheck(() -> Files.list(mods2))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+
+        Path mods3 = this.modFolder.resolve(n3);
+        Stream<Path> modFolder3 = uncheck(() -> Files.list(mods3))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+
+        Path mods4 = this.modFolder.resolve(n4);
+        Stream<Path> modFolder4 = uncheck(() -> Files.list(mods4))
+                .filter(p -> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX));
+
+        return Stream.concat(modsFolderStream, Stream.concat(modFolder1,Stream.concat(modFolder2,Stream.concat(modFolder3,modFolder4))))
+                .sorted(Comparator.comparing(path -> StringUtils.toLowerCase(path.getFileName().toString())));
+
     }
 
     @Override
